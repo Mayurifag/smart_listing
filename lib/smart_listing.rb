@@ -203,15 +203,23 @@ module SmartListing
         sort = sort_params.dup if sort_params.present?
       elsif @options[:sort_attributes]
         @options[:sort_attributes].each do |a|
-          k, v = a
-          if sort_params && sort_params[k.to_s]
-            dir = ["asc", "desc", ""].delete(sort_params[k.to_s])
+          k, _v = a
+          next unless sort_params && sort_params[k.to_s]
 
-            if dir
-              sort ||= {}
-              sort[k] = dir
-            end
-          end
+          safe_sort_directions = [
+            'asc',
+            'desc',
+            'desc nulls last',
+            'asc nulls last',
+            ''
+          ]
+
+          dir = safe_sort_directions.delete(sort_params[k.to_s].downcase)
+
+          next unless dir
+
+          sort ||= {}
+          sort[k] = dir
         end
       end
 
